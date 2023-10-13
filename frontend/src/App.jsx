@@ -3,11 +3,13 @@ import MUIDataTable from "mui-datatables";
 
 const App = () => {
 
+    const url = "/players";
+
     const [players, setPlayers] = useState([])
-    const [column, setColumn] = useState([])
+    const [columns, setColumns] = useState([])
 
     useEffect(() => {
-        fetch('/players')
+        fetch(url + '?size=100000')
             .then(response => response.json())
             .then(data => {
                 setPlayers(data._embedded['players'])
@@ -16,20 +18,33 @@ const App = () => {
             .then(data => {
                 let temp = []
                 Object.keys(data[0]).slice(0, -1).forEach(x => {
-                    temp.push(
-                        {
-                            "name": x,
-                            "label": x.charAt(0).toUpperCase() + x.slice(1),
-                        }
-                    )
+                    temp.push({"name": x,})
                 })
-                setColumn(temp)
+                setColumns(temp)
             })
             .catch(error => console.log(error))
     }, []);
 
+    const deleteRows = (rowsDeleted, data, newTableData) => {
+        Object.keys(rowsDeleted.lookup).forEach(x => {
+            let id = players[x].id
+            fetch(url + "/" + id, {method:'DELETE'})
+                .then(response => console.log(response))
+                .catch(error => console.log(error))
+        })
+    }
+
+    const tableOptions = {
+        rowsPerPage: 25,
+        rowsPerPageOptions: [10, 25, 50, 100],
+        jumpToPage: true,
+        onRowsDelete: deleteRows,
+    }
+
     return(
-        <MUIDataTable columns={column} data={players} title="FIFA Database"/>
+        <div>
+            <MUIDataTable title="FIFA Database" columns={columns} data={players} options={tableOptions}/>
+        </div>
     );
 }
 
